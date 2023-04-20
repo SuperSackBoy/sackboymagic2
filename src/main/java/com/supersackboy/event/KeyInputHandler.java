@@ -32,7 +32,7 @@ public class KeyInputHandler {
 
     private static void registerKeyInputs() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if(castKey.wasPressed()) {
+            if(castKey.wasPressed()) { //if no runes are being cast, open the tech tree, other wise, cast the spell
                 if(((IEntityDataSaver) client.player).getRuneData().getIntArray("runes").length == 0) {
                     TechTreeHandler.openMenu(client);
                 } else if (((IEntityDataSaver) client.player).getRuneData().getIntArray("runes")[0] != 0) {
@@ -41,7 +41,7 @@ public class KeyInputHandler {
                     TechTreeHandler.openMenu(client);
                 }
             }
-            if(rune1Key.wasPressed()) {
+            if(rune1Key.wasPressed()) { //self explanatory code
                 cast(1);
             }
             if(rune2Key.wasPressed()) {
@@ -65,7 +65,7 @@ public class KeyInputHandler {
     static Timer timer;
 
     public static void cast(int rune) {
-
+        //get the players cast runes and add the rune being cast to it
         int[] playerRunes = ((IEntityDataSaver) MinecraftClient.getInstance().player).getRuneData().getIntArray("runes");
         if(playerRunes.length != 0 && RuneHud.blinking == 0) {
             for(int x=0; x<6;x++) {
@@ -74,11 +74,11 @@ public class KeyInputHandler {
                     break;
                 }
             }
-        } else {
+        } else { //if the spell is being timed out or the player has no data saved just use the one rune
             playerRunes = new int[]{rune,0,0,0,0,0};
         }
         validSpell = false;
-        outer:
+        outer: //if the rune code matches a known spell set valid spell to true, otherwise keep it false
         for(TreeNode btn : TechTreeHandler.buttons) {
             if(btn.isUnlocked) for(Spell spell : SpellManager.spells) {
                 if(spell.id.equals(btn.id)) {
@@ -90,22 +90,22 @@ public class KeyInputHandler {
             }
         }
 
-        if(timer == null) {
+        if(timer == null) { //if the timer hasn't been created, create it
             timer = new Timer();
-        } else {
-            if(RuneHud.blinking != 0) {
-                RuneHud.blinking = 0;
+        } else { //if the timer exists
+            if(RuneHud.blinking != 0) { //if the runes are being timed out
+                RuneHud.blinking = 0; //stop the time-out and clear the runes
                 ClientPlayNetworking.send(PacketManager.CAST, PacketByteBufs.create());
             }
-            timer.cancel();
-            timer = new Timer();
+            timer.cancel(); //cancel the timer
+            timer = new Timer(); //create a new timer
         }
-        timer.schedule(new TimerTask() {
+        timer.schedule(new TimerTask() { //schedule a timer for 1s
             @Override
-            public void run() {
+            public void run() { //after 1s start blinking the runes if it's not valid
                 if (!validSpell) {
                     RuneHud.blinking++;
-                    timer.schedule(new TimerTask() {
+                    timer.schedule(new TimerTask() { //set a new timer for 2.45 seconds to stop the blinking
                         @Override
                         public void run() {
                             RuneHud.blinking = 0;
@@ -116,7 +116,7 @@ public class KeyInputHandler {
             }
         }, 1000);
 
-        PacketByteBuf buf = PacketByteBufs.create();
+        PacketByteBuf buf = PacketByteBufs.create(); //send the newly added rune to the server
         buf.writeInt(rune);
         ClientPlayNetworking.send(PacketManager.CAST_RUNE,buf);
     }

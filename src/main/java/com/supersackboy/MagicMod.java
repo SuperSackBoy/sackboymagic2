@@ -14,8 +14,8 @@ public class MagicMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		PacketManager.registerC2SPackets();
-		registries.register();
-		SpellManager.init();
+		PacketManager.registerC2SPackets(); //register the servers packets
+		registries.register(); //register shit
+		SpellManager.init(); //create the spells
 	}
 }

@@ -1,6 +1,5 @@
 package com.supersackboy.spells;
 
-import com.supersackboy.gui.techtree.TreeNode;
 import com.supersackboy.gui.techtree.TreeSideBar;
 
 public class Spell {

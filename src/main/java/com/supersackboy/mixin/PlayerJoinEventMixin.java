@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class PlayerJoinEventMixin {
     @Inject(method = "onPlayerConnect", at = @At("TAIL"))
     public void onPlayerConnect(ClientConnection connection, ServerPlayerEntity player, CallbackInfo ci) {
-        if(player != null) {
+        if(player != null) { //reload the players tech tree on join
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeNbt(((IEntityDataSaver) player).getSpellData());
             ServerPlayNetworking.send(player, PacketManager.RELOAD_TREE, buf);

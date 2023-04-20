@@ -11,11 +11,10 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 public class MagicModClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        KeyInputHandler.register();
-        PacketManager.registerS2CPackets();
+        PacketManager.registerS2CPackets(); //register client packets
 
-        HudRenderCallback.EVENT.register(new RuneHud());
+        HudRenderCallback.EVENT.register(new RuneHud()); //add the hud display to the HudRenderer
 
-        registries.registerClient();
+        registries.registerClient(); //register client shit
     }
 }

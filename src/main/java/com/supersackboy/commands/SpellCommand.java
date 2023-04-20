@@ -16,7 +16,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
-public class SpellCommand {
+public class SpellCommand { //command to add and remove spells from players
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         //spell add 'player' 'spell'
         //spell add 'spell' //defaults to self
