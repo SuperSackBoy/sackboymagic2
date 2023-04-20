@@ -1,6 +1,7 @@
 package com.supersackboy;
 
 import com.supersackboy.networking.PacketManager;
+import com.supersackboy.spells.SpellManager;
 import com.supersackboy.util.registries;
 import net.fabricmc.api.ModInitializer;
 
@@ -13,8 +14,8 @@ public class MagicMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		LOGGER.info("Hello Fabric world!");
 		PacketManager.registerC2SPackets();
 		registries.register();
+		SpellManager.init();
 	}
 }

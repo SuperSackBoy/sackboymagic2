@@ -1,15 +1,25 @@
 package com.supersackboy.event;
 
+import com.supersackboy.gui.RuneHud;
 import com.supersackboy.gui.techtree.TechTreeHandler;
+import com.supersackboy.gui.techtree.TreeNode;
 import com.supersackboy.networking.PacketManager;
+import com.supersackboy.playerdata.IEntityDataSaver;
+import com.supersackboy.spells.Spell;
+import com.supersackboy.spells.SpellManager;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.network.PacketByteBuf;
 import org.lwjgl.glfw.GLFW;
+
+import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class KeyInputHandler {
     public static KeyBinding castKey;
@@ -23,8 +33,13 @@ public class KeyInputHandler {
     private static void registerKeyInputs() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if(castKey.wasPressed()) {
-                //ClientPlayNetworking.send(PacketManager.CAST, PacketByteBufs.create());
-                TechTreeHandler.openMenu(client);
+                if(((IEntityDataSaver) client.player).getRuneData().getIntArray("runes").length == 0) {
+                    TechTreeHandler.openMenu(client);
+                } else if (((IEntityDataSaver) client.player).getRuneData().getIntArray("runes")[0] != 0) {
+                    ClientPlayNetworking.send(PacketManager.CAST, PacketByteBufs.create());
+                } else {
+                    TechTreeHandler.openMenu(client);
+                }
             }
             if(rune1Key.wasPressed()) {
                 cast(1);
@@ -46,7 +61,61 @@ public class KeyInputHandler {
             }
         });
     }
+    public static boolean validSpell;
+    static Timer timer;
+
     public static void cast(int rune) {
+
+        int[] playerRunes = ((IEntityDataSaver) MinecraftClient.getInstance().player).getRuneData().getIntArray("runes");
+        if(playerRunes.length != 0 && RuneHud.blinking == 0) {
+            for(int x=0; x<6;x++) {
+                if (playerRunes[x] == 0) {
+                    playerRunes[x] = rune;
+                    break;
+                }
+            }
+        } else {
+            playerRunes = new int[]{rune,0,0,0,0,0};
+        }
+        validSpell = false;
+        outer:
+        for(TreeNode btn : TechTreeHandler.buttons) {
+            if(btn.isUnlocked) for(Spell spell : SpellManager.spells) {
+                if(spell.id.equals(btn.id)) {
+                    if(Arrays.equals(spell.code, playerRunes)) {
+                        validSpell = true;
+                        break outer;
+                    }
+                }
+            }
+        }
+
+        if(timer == null) {
+            timer = new Timer();
+        } else {
+            if(RuneHud.blinking != 0) {
+                RuneHud.blinking = 0;
+                ClientPlayNetworking.send(PacketManager.CAST, PacketByteBufs.create());
+            }
+            timer.cancel();
+            timer = new Timer();
+        }
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (!validSpell) {
+                    RuneHud.blinking++;
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            RuneHud.blinking = 0;
+                            ClientPlayNetworking.send(PacketManager.CAST, PacketByteBufs.create());
+                        }
+                    }, 2450);
+                }
+            }
+        }, 1000);
+
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeInt(rune);
         ClientPlayNetworking.send(PacketManager.CAST_RUNE,buf);

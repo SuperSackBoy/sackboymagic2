@@ -31,7 +31,7 @@ public class TreeSideBar extends PressableWidget {
     public TreeMenu container;
     public String title;
     public String desc;
-    private int[] code;
+    public int[] code;
     public String[] requirements;
     public static final Identifier TEXTURE = new Identifier(MagicMod.ModID,"textures/gui/widgets.png");
     public TreeSideBar(String title, String desc, int[] code, String[] requirements) {

@@ -1,6 +1,7 @@
 package com.supersackboy.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.supersackboy.event.KeyInputHandler;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
@@ -9,6 +10,8 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import com.supersackboy.MagicMod;
 import com.supersackboy.playerdata.IEntityDataSaver;
+
+import java.awt.*;
 
 public class RuneHud implements HudRenderCallback {
     //get rune textures
@@ -22,6 +25,7 @@ public class RuneHud implements HudRenderCallback {
     //array of rune textures because im a lazy bitch
     public static Identifier[] RUNES = {NONE,RUNE1,RUNE2,RUNE3,RUNE4,RUNE5,RUNE6};
 
+    public static int blinking = 0;
     @Override
     public void onHudRender(MatrixStack matrixStack, float tickDelta) {
         int x = 0;
@@ -44,10 +48,20 @@ public class RuneHud implements HudRenderCallback {
         int yOffset = 32;
         int xInterval = 16;
         RenderSystem.setShader(GameRenderer::getPositionTexProgram);
-        RenderSystem.setShaderColor(1f,1f,1f,1f);
-        //RenderSystem.setShaderTexture(0,RUNE1);
-        //actually draw the fucking gui
-        for(int i = 2; i > -1; i--) {
+        Color color;
+
+        if(blinking != 0) {
+            color = new Color(255, 64, 64, 255);
+        } else if(KeyInputHandler.validSpell){
+            color = new Color(157, 255, 94,255);
+        } else {
+            color = new Color(232, 232, 232, 255);
+        }
+
+        RenderSystem.setShaderColor(color.getRed()/255f, color.getGreen()/255f, color.getBlue()/255f, 1f);
+
+        if(blinking != 0) blinking+= 2;
+        if ((blinking % 100) >= 35 || blinking == 0)for(int i = 2; i > -1; i--) {
             RenderSystem.setShaderTexture(0,RUNES[playerRunes[i+3]]);
             DrawableHelper.drawTexture(matrixStack,x-xOffset,y-yOffset,0,0,16,16,16,16);
 
@@ -56,5 +70,6 @@ public class RuneHud implements HudRenderCallback {
 
             x-=xInterval;
         }
+        RenderSystem.setShaderColor(1f,1f,1f,1f);
     }
 }
