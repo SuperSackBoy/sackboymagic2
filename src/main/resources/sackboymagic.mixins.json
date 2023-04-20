@@ -3,7 +3,8 @@
   "package": "com.supersackboy.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "ModEntityDataSaverMixin"
+    "ModEntityDataSaverMixin",
+    "PlayerJoinEventMixin"
   ],
   "injectors": {
     "defaultRequire": 1

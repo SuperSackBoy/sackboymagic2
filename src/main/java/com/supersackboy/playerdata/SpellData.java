@@ -47,6 +47,10 @@ public class SpellData {
         }
         return 0;
     }
+
+    public static int reset(IEntityDataSaver player) {
+        return player.resetSpellData();
+    }
     public static void syncSpells(boolean addRemove, ServerPlayerEntity player, String spell, int spellsKnown) {
         PacketByteBuf buffer = PacketByteBufs.create();
         buffer.writeInt(spellsKnown);

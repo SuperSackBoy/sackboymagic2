@@ -1,5 +1,6 @@
 package com.supersackboy.gui.techtree;
 
+import com.supersackboy.networking.PacketManager;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
 import edu.uci.ics.jung.graph.SparseGraph;
 import net.minecraft.client.MinecraftClient;
@@ -7,19 +8,41 @@ import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.MathHelper;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 public class TreeMenu extends Screen {
     ArrayList<TreeNode> buttons;
-    protected TreeMenu(TreeNode[] buttons) {
+    ArrayList<TreeSideBar> sidebars;
+    TreeSideBar menuOpen = null;
+    protected TreeMenu(TreeNode[] buttons, TreeSideBar[] menus) {
         super(Text.literal("TechTree"));
         this.buttons = new ArrayList<>();
         for(TreeNode btn : buttons) {
             if (btn != null) {
                 this.buttons.add(btn);
+            }
+        }
+        this.sidebars = new ArrayList<>();
+        for(TreeSideBar menu : menus) {
+            if (menu != null) {
+                this.sidebars.add(menu);
+            }
+        }
+
+        for(TreeNode btn : buttons) {
+            if(btn.prerequisitesString != null) {
+                for (String string : btn.prerequisitesString) {
+                    for (TreeNode search : buttons) {
+                        if (string.equals(search.id)) {
+                            btn.prerequisites.add(search);
+                        }
+                    }
+                }
             }
         }
     }
@@ -31,7 +54,7 @@ public class TreeMenu extends Screen {
 
         for(TreeNode btn : buttons) {
             if(btn.isRoot) {
-                layout.setLocation(btn,width/2f-btn.getWidth()/2f,height/2f-btn.getHeight()/2f);
+                layout.setLocation(btn,width/2f,height/2f);
             }
             btn.setPos((int) (lerp(btn.getX(),layout.getX(btn)+offsetX,0.1))
                     , (int) (lerp(btn.getY(),layout.getY(btn)+offsetY,0.1)));
@@ -47,18 +70,8 @@ public class TreeMenu extends Screen {
     @Override
     protected void init() {
         super.init();
+        menuOpen = null;
 
-        for(TreeNode btn : buttons) {
-            if(btn.prerequisitesString != null) {
-                for (String string : btn.prerequisitesString) {
-                    for (TreeNode search : buttons) {
-                        if (string.equals(search.id)) {
-                            btn.prerequisites.add(search);
-                        }
-                    }
-                }
-            }
-        }
 
         graph = new SparseGraph<>();
         int edge = 1;
@@ -72,19 +85,50 @@ public class TreeMenu extends Screen {
                 }
             }
         }
-        layout = new SpringLayout<>(graph);
-        layout.initialize();
-        Dimension size = new Dimension(width,height);
-        layout.setSize(size);
+        if(layout == null) {
+            layout = new SpringLayout<>(graph);
+            layout.initialize();
+            Dimension size = new Dimension(width, height);
+            layout.setSize(size);
 
-        for(TreeNode btn: buttons) {
-            layout.setLocation(btn, width/2f,height/2f);
+            layout.setStretch(0.7); //def: 0.7
+            layout.setRepulsionRange(100); //def 100
+            layout.setForceMultiplier(1); //def: 1/3
         }
-
+        for(TreeSideBar menu : sidebars) {
+            menu.init(this);
+            for(TreeNode btn : buttons) {
+                if(btn.id.equals(menu.title)) {
+                    menu.connect(btn);
+                    break;
+                }
+            }
+        }
     }
     public boolean dragging() {
-        return isMouseDown(0) && !isDragging();
+        return isMouseDown(0) && !mouseOverButton();
     }
+
+    public boolean draggingNode() {
+        return isMouseDown(0) && mouseOverButton();
+    }
+    public boolean mouseOverButton() {
+        for(TreeNode btn : buttons) {
+            if (btn.isHovered()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public TreeNode getHovered() {
+        for(TreeNode btn : buttons) {
+            if (btn.isHovered()) {
+                return btn;
+            }
+        }
+        return null;
+    }
+
     /**
      * 0 = left
      * <p>1 = right
@@ -125,23 +169,74 @@ public class TreeMenu extends Screen {
     float newOffsetY = 0;
     float originalPositionX = 0;
     float originalPositionY = 0;
+    int pan;
+    Point2D point;
     public void panView(int mouseX,int mouseY) {
-        if (dragging()) {
-            if (startedPan == 0) {
-                originalPositionX = newOffsetX;
-                originalPositionY = newOffsetY;
-                startX = mouseX;
-                startY = mouseY;
-                startedPan = 1;
+        if(menuOpen == null || mouseX < width/3*2) {
+            if (isMouseDown(0) && pan == 0) {
+                if (dragging()) {
+                    pan = 1;
+                } else if (draggingNode()) {
+                    pan = 2;
+                }
+            }
+            if (!isMouseDown(0)) {
+                pan = 0;
+            }
+            if (pan == 1) {
+                if (startedPan == 0) {
+                    originalPositionX = newOffsetX;
+                    originalPositionY = newOffsetY;
+                    startX = mouseX;
+                    startY = mouseY;
+                    startedPan = 1;
+                } else {
+                    newOffsetX = (mouseX - startX) + originalPositionX;
+                    newOffsetY = (mouseY - startY) + originalPositionY;
+                }
             } else {
-                newOffsetX = (mouseX - startX) + originalPositionX;
-                newOffsetY = (mouseY - startY) + originalPositionY;
+                startedPan = 0;
+            }
+            offsetX = (float) lerp(offsetX, newOffsetX, 0.1f);
+            offsetY = (float) lerp(offsetY, newOffsetY, 0.1f);
+
+            if (pan == 2) {
+                if (isMouseDown(0) && latch) {
+                    closest = getHovered();
+                    latch = false;
+                    point = new Point2D.Float(mouseX, mouseY);
+                }
+                layout.setLocation(closest, mouseX - offsetX, mouseY - offsetY);
+            }
+            if (!isMouseDown(0)) {
+                latch = true;
+                Point2D point2 = new Point2D.Float(mouseX, mouseY);
+                if (point2.equals(point)) {
+                    closest.onPress();
+                }
             }
         } else {
-            startedPan = 0;
+            if (menuOpen.isHovered() && isMouseDown(0)) {
+                menuOpen.onPress();
+            }
         }
-        offsetX = (float) lerp(offsetX,newOffsetX,0.1f);
-        offsetY = (float) lerp(offsetY,newOffsetY,0.1f);
+    }
+
+    TreeNode closest = null;
+    Boolean latch = true;
+
+    public void openMenu(TreeSideBar menu) {
+        if(menuOpen != null) {
+            closeMenu();
+        }
+        menuOpen = menu;
+        this.addDrawable(menu);
+    }
+    public void closeMenu() {
+        if(menuOpen != null) {
+            this.remove(menuOpen);
+            menuOpen = null;
+        }
     }
 
     /**

@@ -30,6 +30,14 @@ public class ModEntityDataSaverMixin implements IEntityDataSaver {
         return spellData;
     }
 
+    public int resetSpellData() {
+        if(this.spellData != null) {
+            this.spellData = new NbtCompound();
+            return 1;
+        }
+        return 0;
+    }
+
     @Inject(method = "writeNbt", at = @At("HEAD"))
     protected void injectWriteMethod(NbtCompound nbt, CallbackInfoReturnable<NbtCompound> cir) {
         if(runeData != null) {
