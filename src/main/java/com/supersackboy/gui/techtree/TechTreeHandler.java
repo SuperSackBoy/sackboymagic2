@@ -32,14 +32,6 @@ public class TechTreeHandler {
 
         };
 
-        for(TreeSideBar menu : menus) { //link the menus to the spells
-            for(Spell spell : SpellManager.spells) {
-                if(spell.id.equals(menu.title)) {
-                    spell.connect(menu);
-                }
-            }
-        }
-
         if(nbt != null) { //load the known spells
             for(TreeNode btn : buttons) {
                 if(nbt.contains(btn.id)) {

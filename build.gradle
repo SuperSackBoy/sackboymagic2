@@ -12,11 +12,10 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
+	maven {
+		name "KosmX's maven"
+		url 'https://maven.kosmx.dev/'
+	}
 }
 
 dependencies {
@@ -35,6 +34,8 @@ dependencies {
 
 	implementation('net.sf.jung:jung-algorithms:2.1.1')
 	implementation('net.sf.jung:jung-graph-impl:2.1.1')
+
+	include modImplementation("dev.kosmx.player-anim:player-animation-lib-fabric:${project.player_anim}")
 }
 
 processResources {

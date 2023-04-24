@@ -21,6 +21,7 @@ public class PlayerJoinEventMixin {
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeNbt(((IEntityDataSaver) player).getSpellData());
             ServerPlayNetworking.send(player, PacketManager.RELOAD_TREE, buf);
+            ((IEntityDataSaver) player).getRuneData().putIntArray("runes",new int[]{0,0,0,0,0,0});
         }
     }
 }

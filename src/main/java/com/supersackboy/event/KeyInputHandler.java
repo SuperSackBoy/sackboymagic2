@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.network.PacketByteBuf;
 import org.lwjgl.glfw.GLFW;
 
@@ -32,7 +33,7 @@ public class KeyInputHandler {
 
     private static void registerKeyInputs() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if(castKey.wasPressed()) { //if no runes are being cast, open the tech tree, other wise, cast the spell
+            if(castKey.wasPressed()) { //if no runes are being cast, open the tech tree, otherwise, cast the spell
                 if(((IEntityDataSaver) client.player).getRuneData().getIntArray("runes").length == 0) {
                     TechTreeHandler.openMenu(client);
                 } else if (((IEntityDataSaver) client.player).getRuneData().getIntArray("runes")[0] != 0) {

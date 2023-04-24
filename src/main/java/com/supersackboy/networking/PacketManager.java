@@ -16,6 +16,7 @@ public class PacketManager {
     public static Identifier RELOAD_TREE = new Identifier(MagicMod.ModID, "reload_tree");
     public static Identifier ADD_SPELL = new Identifier(MagicMod.ModID, "add_spell");
     public static Identifier REQUEST_RELOAD_TREE = new Identifier(MagicMod.ModID, "request_reload_tree");
+    public static Identifier ANIM = new Identifier(MagicMod.ModID, "play_animation");
 
 
 
@@ -31,5 +32,7 @@ public class PacketManager {
         ClientPlayNetworking.registerGlobalReceiver(CAST_SYNC, SyncRuneS2C::receive);
         ClientPlayNetworking.registerGlobalReceiver(SPELL_SYNC, SyncSpellS2C::receive);
         ClientPlayNetworking.registerGlobalReceiver(RELOAD_TREE, ReloadTreeS2C::receive);
+        ClientPlayNetworking.registerGlobalReceiver(ANIM, AnimS2C::receive);
+
     }
 }
