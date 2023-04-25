@@ -1,5 +1,6 @@
 package com.supersackboy.gui.techtree;
 
+import com.supersackboy.util.functions;
 import edu.uci.ics.jung.algorithms.layout.SpringLayout;
 import edu.uci.ics.jung.graph.SparseGraph;
 import net.minecraft.client.MinecraftClient;
@@ -54,8 +55,8 @@ public class TreeMenu extends Screen {
             if(btn.isRoot) {
                 layout.setLocation(btn,width/2f,height/2f);
             }
-            btn.setPos((int) (lerp(btn.getX(),layout.getX(btn)+offsetX,0.1))
-                    , (int) (lerp(btn.getY(),layout.getY(btn)+offsetY,0.1)));
+            btn.setPos((int) (functions.lerp(btn.getX(),layout.getX(btn)+offsetX,0.1))
+                    , (int) (functions.lerp(btn.getY(),layout.getY(btn)+offsetY,0.1)));
         }
 
         layout.step(); //update the fancy layout bullshit
@@ -199,8 +200,8 @@ public class TreeMenu extends Screen {
             } else {
                 startedPan = 0;
             } //linear interpolation is hot and sexy
-            offsetX = (float) lerp(offsetX, newOffsetX, 0.1f);
-            offsetY = (float) lerp(offsetY, newOffsetY, 0.1f);
+            offsetX = (float) functions.lerp(offsetX, newOffsetX, 0.1f);
+            offsetY = (float) functions.lerp(offsetY, newOffsetY, 0.1f);
 
             if (pan == 2) { //if the user is dragging a button
                 if (isMouseDown(0) && latch) { //get the hovered button and starting location
@@ -241,21 +242,7 @@ public class TreeMenu extends Screen {
         }
     }
 
-    /**
-     * Linearly interpolates between two values.
-     *
-     * @param from
-     *            the start value
-     * @param to
-     *            the end value
-     * @param p
-     *            the current interpolation position, must be between 0 and 1
-     * @return the result of the interpolation
-     */
-    public static double lerp(double from, double to, double p) {
-        assert p >= 0 && p <= 1 : "interpolation position out of range";
-        return from + (to - from) * p;
-    }
+
 
     public static int rgbaToArgb(Color color) {
         int red = color.getRed();
